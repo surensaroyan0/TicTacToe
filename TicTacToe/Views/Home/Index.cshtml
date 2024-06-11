@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+</head>
+<body>
+    <div class="grid-container"></div>
+    <form id="moveForm" method="post">
+        <input type="hidden" id="row" name="row">
+        <input type="hidden" id="col" name="col">
+        <input type="hidden" id="player" name="player">
+    </form>
+    <script>
+        const gridContainer = document.querySelector('.grid-container');
+        let currentPlayer = 'X';
+
+        for (let row = 0; row < 100; row++) {
+            for (let col = 0; col < 100; col++) {
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('grid-item');
+                gridItem.dataset.row = row;
+                gridItem.dataset.col = col;
+                gridItem.onclick = function() {
+                    if (!gridItem.innerHTML) {
+                        gridItem.innerHTML = currentPlayer;
+                        gridItem.style.color = currentPlayer === 'X' ? 'red' : 'blue';
+
+                        const clickedRow = gridItem.dataset.row;
+                        const clickedCol = gridItem.dataset.col;
+                        
+                        makeMove(clickedRow, clickedCol, currentPlayer);
+                        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    }
+                };
+                gridContainer.appendChild(gridItem);
+            }
+        }
+
+        async function makeMove(row, col, player) {
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: 0,
+                    row: parseInt(row, 10),
+                    col: parseInt(col, 10),
+                    player: player
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.opponentMove) {
+                const opponentMove = data.opponentMove;
+                const opponentCell = document.querySelector(`[data-row="${opponentMove.item1}"][data-col="${opponentMove.item2}"]`);
+             
+                opponentCell.innerHTML = 'O';
+                opponentCell.style.color = 'blue';
+            }
+
+            if (data.isDraw) {
+                alert("The game is draw!");
+                location.reload();
+            } else if (data.winner) {
+                alert(`The player ${data.winner} won!`);
+                location.reload();
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            }
+        } 
+
+        window.addEventListener('load', async() => {
+            await fetch('/clear-session', { method: 'POST' });
+        });
+    </script>
+</body>
+</html>
+
