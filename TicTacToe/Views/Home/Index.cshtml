@@ -6,15 +6,24 @@
     <title>Tic Tac Toe</title>
 </head>
 <body>
+    <div class="flex">
+        <img src="~/img/undo.png" alt="Undo Icon" id="undo">
+        <img src="~/img/redo.png" alt="Redo Icon" id="redo">
+    </div>
     <div class="grid-container"></div>
     <form id="moveForm" method="post">
         <input type="hidden" id="row" name="row">
         <input type="hidden" id="col" name="col">
         <input type="hidden" id="player" name="player">
     </form>
+
     <script>
         const gridContainer = document.querySelector('.grid-container');
+        const undo = document.getElementById('undo');
+        const redo = document.getElementById('redo');
+
         let currentPlayer = 'X';
+        let moveHistory = [];
 
         for (let row = 0; row < 100; row++) {
             for (let col = 0; col < 100; col++) {
@@ -25,13 +34,14 @@
                 gridItem.onclick = function() {
                     if (!gridItem.innerHTML) {
                         gridItem.innerHTML = currentPlayer;
-                        gridItem.style.color = currentPlayer === 'X' ? 'red' : 'blue';
+                        gridItem.style.color = 'red';
 
                         const clickedRow = gridItem.dataset.row;
                         const clickedCol = gridItem.dataset.col;
                         
+                        moveHistory.push({ row: clickedRow, col: clickedCol, player: currentPlayer });
                         makeMove(clickedRow, clickedCol, currentPlayer);
-                        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                        currentPlayer = 'O';
                     }
                 };
                 gridContainer.appendChild(gridItem);
@@ -45,13 +55,11 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    id: 0,
                     row: parseInt(row, 10),
                     col: parseInt(col, 10),
                     player: player
                 })
             });
-
             const data = await response.json();
 
             if (data.opponentMove) {
@@ -60,6 +68,7 @@
              
                 opponentCell.innerHTML = 'O';
                 opponentCell.style.color = 'blue';
+                moveHistory.push({ row: opponentMove.item1, col: opponentMove.item2, player: 'O' })
             }
 
             if (data.isDraw) {
@@ -69,9 +78,36 @@
                 alert(`The player ${data.winner} won!`);
                 location.reload();
             } else {
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                currentPlayer = 'X';   
             }
         } 
+
+        undo.addEventListener('click', async() => {
+            console.log(moveHistory);
+            if (moveHistory.length > 1) {
+                const lastMove = moveHistory.pop();
+                const secondLastMove = moveHistory.pop();
+                console.log(moveHistory);
+                const firstCell = document.querySelector(`[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
+                const secondCell = document.querySelector(`[data-row="${secondLastMove.row}"][data-col="${secondLastMove.col}"]`);
+                
+                firstCell.innerHTML = '';
+                secondCell.innerHTML = ''; 
+                firstCell.style.color = '';
+                secondCell.style.color = '';
+            
+                await fetch('/undo-moves', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify([
+                        { row: lastMove.row, col: lastMove.col, player: lastMove.player },
+                        { row: secondLastMove.row, col: secondLastMove.col, player: secondLastMove.player }
+                    ])
+                });
+            }
+        });
 
         window.addEventListener('load', async() => {
             await fetch('/clear-session', { method: 'POST' });
@@ -79,4 +115,3 @@
     </script>
 </body>
 </html>
-

@@ -43,3 +43,12 @@ body {
 .grid-item:hover {
   background-color: #f0f0f0;
 }
+
+.flex {
+  display: flex;
+}
+
+.flex img {
+  margin-right: 20px;
+  cursor: pointer;
+}
