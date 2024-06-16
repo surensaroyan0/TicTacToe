@@ -4,6 +4,8 @@ namespace TicTacToe.Models
     {
         public char[,] Board { get; set; }
         public int MovesCount { get; set; }
+        private int BoardSize = 100;
+        private char EmptyCell = '-';
 
         public TicTacToeGame()
         {
@@ -13,13 +15,13 @@ namespace TicTacToe.Models
 
         public char[,] InitializeBoard()
         {   
-            var board = new char[100, 100];
+            var board = new char[BoardSize, BoardSize];
             
-            for (int i = 0; i < 100; i++)
-            {
-                for (int j = 0; j < 100; j++)
+            for (int i = 0; i < BoardSize; i++)
                 {
-                    board[i, j] = '-';
+                for (int j = 0; j < BoardSize; j++)
+                {
+                    board[i, j] = EmptyCell;
                 }
             }
             return board;
@@ -27,7 +29,7 @@ namespace TicTacToe.Models
 
         public bool IsDraw()
         {
-            return MovesCount == 10000;
+            return MovesCount == BoardSize * BoardSize;
         }
 
         public bool IsWinningMove(int x, int y, char player, int loopCount)
@@ -54,7 +56,7 @@ namespace TicTacToe.Models
             {
                 int nx = x + i * dx;
                 int ny = y + i * dy;
-                if (nx >= 0 && nx < 100 && ny >= 0 && ny < 100 && Board[nx, ny] == player)
+                if (nx >= 0 && nx < BoardSize && ny >= 0 && ny < BoardSize && Board[nx, ny] == player)
                 {
                     count++;
                 }
@@ -68,25 +70,25 @@ namespace TicTacToe.Models
 
         private (int, int) FindPotentialWin(char player, int requiredCount)
         {
-            for (int x = 0; x < 100; x++)
+            for (int x = 0; x < BoardSize; x++)
             {
-                for (int y = 0; y < 100; y++)
+                for (int y = 0; y < BoardSize; y++)
                 {
-                    if (Board[x, y] == '-')
+                    if (Board[x, y] == EmptyCell)
                     {
                         Board[x, y] = player;
                         if (IsWinningMove(x, y, player, requiredCount))
                         {
                             if (requiredCount == 5)
                             {
-                                Board[x, y] = '-';
+                                Board[x, y] = EmptyCell;
                                 return (x, y);
                             }
                             if (requiredCount == 4)
                             {
                                 if (CanCompleteLine(x, y, player, 4))
                                 {
-                                    Board[x, y] = '-';
+                                    Board[x, y] = EmptyCell;
                                     return (x, y);
                                 }
                             }
@@ -94,12 +96,12 @@ namespace TicTacToe.Models
                             {
                                 if (CanCompleteLine(x, y, player, 3))
                                 {
-                                    Board[x, y] = '-';
+                                    Board[x, y] = EmptyCell;
                                     return (x, y);
                                 }
                             }
                         }
-                        Board[x, y] = '-';
+                        Board[x, y] = EmptyCell;
                     }  
                 }
             }
@@ -114,11 +116,11 @@ namespace TicTacToe.Models
             preventMoves[1] = (-1, -1);
             preventMoves[2] = (-1, -1);
             
-            for (int x = 0; x < 100; x++)
+            for (int x = 0; x < BoardSize; x++)
             {
-                for (int y = 0; y < 100; y++)
+                for (int y = 0; y < BoardSize; y++)
                 {
-                    if (Board[x, y] == '-')
+                    if (Board[x, y] == EmptyCell)
                     {
                         Board[x, y] = opponent;
 
@@ -143,7 +145,7 @@ namespace TicTacToe.Models
                             }
                         }
 
-                        Board[x, y] = '-';
+                        Board[x, y] = EmptyCell;
                     }
                 }
             }
@@ -154,11 +156,11 @@ namespace TicTacToe.Models
             }
             if (preventMoves[1] != (-1, -1))
             {
-                return (preventMoves[1].Item1, preventMoves[1].Item2, 1);
+                return (preventMoves[1].Item1, preventMoves[1].Item2, 0);
             }
             if (preventMoves[2] != (-1, -1))
             {
-                return (preventMoves[2].Item1, preventMoves[2].Item2, 1);
+                return (preventMoves[2].Item1, preventMoves[2].Item2, -1);
             }
 
             return (-1, -1, -2);
@@ -183,7 +185,7 @@ namespace TicTacToe.Models
                         int newRow = row + dx * i;
                         int newCol = col + dy * i;
 
-                        if (newRow >= 0 && newRow <= 100 && newCol >= 0 && newCol <= 100)
+                        if (newRow >= 0 && newRow <= BoardSize && newCol >= 0 && newCol <= BoardSize)
                         {
                             possibleMoves.Add((newRow, newCol)); 
                         }
@@ -197,7 +199,7 @@ namespace TicTacToe.Models
             do
             {
                 randomMove = possibleMoves[random.Next(possibleMoves.Count)];
-            } while (Board[randomMove.Item1, randomMove.Item2] != '-');
+            } while (Board[randomMove.Item1, randomMove.Item2] != EmptyCell);
 
             return randomMove;
         }
@@ -227,13 +229,13 @@ namespace TicTacToe.Models
                     int newX = x + i * dx;
                     int newY = y + i * dy;
 
-                    if (newX >= 0 && newX < 100 && newY >= 0 && newY < 100)
+                    if (newX >= 0 && newX < BoardSize && newY >= 0 && newY < BoardSize)
                     {
                         if (Board[newX, newY] == player)
                         {
                             consecutiveCount++;
                         }
-                        else if (Board[newX, newY] == '-')
+                        else if (Board[newX, newY] == EmptyCell)
                         {
                             spaces++;
                         }
@@ -249,13 +251,13 @@ namespace TicTacToe.Models
                     int newX = x - i * dx;
                     int newY = y - i * dy;
 
-                    if (newX >= 0 && newX < 100 && newY >= 0 && newY < 100)
+                    if (newX >= 0 && newX < BoardSize && newY >= 0 && newY < BoardSize)
                     {
                         if (Board[newX, newY] == player)
                         {
                             consecutiveCount++;
                         }
-                        else if (Board[newX, newY] == '-')
+                        else if (Board[newX, newY] == EmptyCell)
                         {
                             spaces++;
                         }
