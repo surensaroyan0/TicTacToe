@@ -35,6 +35,8 @@ namespace TicTacToe.Controllers
             var board = HttpContext.Session.Get<char[,]>(BoardKey) ?? new TicTacToeGame().InitializeBoard();
             var moveCount = HttpContext.Session.GetInt32(MoveCountKey) ?? 0;
             var undoStack = HttpContext.Session.Get<Stack<MakeMove>>(UndoStackKey) ?? new Stack<MakeMove>();
+            var redoStack = new Stack<MakeMove>();
+            HttpContext.Session.Set(RedoStackKey, redoStack);
 
             var ticTacToeGame = new TicTacToeGame { Board = board, MovesCount = moveCount };
             var playerWon = ticTacToeGame.IsWinningMove(move.Row, move.Col, move.Player, 5);
