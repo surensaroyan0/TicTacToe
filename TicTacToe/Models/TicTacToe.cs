@@ -4,8 +4,8 @@ namespace TicTacToe.Models
     {
         public char[,] Board { get; set; }
         public int MovesCount { get; set; }
-        private int BoardSize = 100;
-        private char EmptyCell = '-';
+        int BoardSize = 100;
+        char EmptyCell = '-';
 
         public TicTacToeGame()
         {
