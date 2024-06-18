@@ -21,11 +21,12 @@
         const gridContainer = document.querySelector('.grid-container');
         const undo = document.getElementById('undo');
         const redo = document.getElementById('redo');
-
+        const boardSize = 100;
+        
         let currentPlayer = 'X';
 
-        for (let row = 0; row < 100; row++) {
-            for (let col = 0; col < 100; col++) {
+        for (let row = 0; row < boardSize; row++) {
+            for (let col = 0; col < boardSize; col++) {
                 const gridItem = document.createElement('div');
 
                 gridItem.classList.add('grid-item');
