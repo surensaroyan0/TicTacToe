@@ -23,11 +23,11 @@
         const redo = document.getElementById('redo');
 
         let currentPlayer = 'X';
-        let moveHistory = [];
 
         for (let row = 0; row < 100; row++) {
             for (let col = 0; col < 100; col++) {
                 const gridItem = document.createElement('div');
+
                 gridItem.classList.add('grid-item');
                 gridItem.dataset.row = row;
                 gridItem.dataset.col = col;
@@ -39,7 +39,6 @@
                         const clickedRow = gridItem.dataset.row;
                         const clickedCol = gridItem.dataset.col;
                         
-                        moveHistory.push({ row: clickedRow, col: clickedCol, player: currentPlayer });
                         makeMove(clickedRow, clickedCol, currentPlayer);
                         currentPlayer = 'O';
                     }
@@ -68,7 +67,6 @@
              
                 opponentCell.innerHTML = 'O';
                 opponentCell.style.color = 'blue';
-                moveHistory.push({ row: opponentMove.item1, col: opponentMove.item2, player: 'O' })
             }
 
             if (data.isDraw) {
@@ -83,29 +81,46 @@
         } 
 
         undo.addEventListener('click', async() => {
-            console.log(moveHistory);
-            if (moveHistory.length > 1) {
-                const lastMove = moveHistory.pop();
-                const secondLastMove = moveHistory.pop();
-                console.log(moveHistory);
+            const response = await fetch('/undo-moves', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'  
+                }
+            });
+            const data = await response.json();
+
+            if (data.undoStack.length >= 1) {
+                const lastMove = data.undoStack.pop();
+                const secondLastMove = data.undoStack.pop();
                 const firstCell = document.querySelector(`[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
                 const secondCell = document.querySelector(`[data-row="${secondLastMove.row}"][data-col="${secondLastMove.col}"]`);
-                
+
                 firstCell.innerHTML = '';
                 secondCell.innerHTML = ''; 
                 firstCell.style.color = '';
                 secondCell.style.color = '';
-            
-                await fetch('/undo-moves', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify([
-                        { row: lastMove.row, col: lastMove.col, player: lastMove.player },
-                        { row: secondLastMove.row, col: secondLastMove.col, player: secondLastMove.player }
-                    ])
-                });
+            }
+        });
+
+        redo.addEventListener('click', async() => {
+            const response = await fetch('/redo-moves', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'  
+                }
+            });
+            const data = await response.json();
+
+            if (data.redoStack.length >= 1) {
+                const lastMove = data.redoStack.pop();
+                const secondLastMove = data.redoStack.pop();
+                const firstCell = document.querySelector(`[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
+                const secondCell = document.querySelector(`[data-row="${secondLastMove.row}"][data-col="${secondLastMove.col}"]`);
+
+                firstCell.innerHTML = lastMove.player;
+                secondCell.innerHTML = secondLastMove.player; 
+                firstCell.style.color = lastMove.player === 'X' ? 'red' : 'blue';
+                secondCell.style.color = secondLastMove.player === 'X' ? 'red' : 'blue';
             }
         });
 

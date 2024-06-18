@@ -273,7 +273,6 @@ namespace TicTacToe.Models
                     return true;
                 }
             }
-
             return false;
         }
 
