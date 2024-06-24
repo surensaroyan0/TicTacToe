@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using TicTacToe.Models;
-using System.Collections.Generic;
 
 namespace TicTacToe.Controllers
 {
@@ -27,12 +26,11 @@ namespace TicTacToe.Controllers
             var movesCount = HttpContext.Session.GetInt32(MOVE_COUNT_KEY) ?? 0;
             var undoStack = HttpContext.Session.Get<Stack<MakeMove>>(UNDO_STACK_KEY) ?? new Stack<MakeMove>();
             
-            var redoStack = new Stack<MakeMove>();
-            HttpContext.Session.Set(REDO_STACK_KEY, redoStack);
-
             var ticTacToeGame = new TicTacToeGame { Board = board, MovesCount = movesCount };
             var isPlayerWon = ticTacToeGame.IsWinningMove(move.Row, move.Col, move.Player, 5);
 
+
+            HttpContext.Session.Set(REDO_STACK_KEY, new Stack<MakeMove>());
             board[move.Row, move.Col] = move.Player;
             movesCount++;
             undoStack.Push(move);
@@ -58,8 +56,7 @@ namespace TicTacToe.Controllers
                     board,
                     isDraw = ticTacToeGame.IsDraw(),
                     winner = isOpponentWon ? (char?)opponent : null,
-                    opponentMove = new { item1 = opponentMove.Item1, item2 = opponentMove.Item2 },
-                    lastMove = undoStack.Peek()
+                    opponentMove = new { item1 = opponentMove.Item1, item2 = opponentMove.Item2 }
                 };
 
                 return Json(response);
@@ -95,7 +92,7 @@ namespace TicTacToe.Controllers
         public IActionResult UndoMoves()
         {
             var board = HttpContext.Session.Get<char[,]>(BOARD_KEY);
-            var undoStack = HttpContext.Session.Get<Stack<MakeMove>>(UNDO_STACK_KEY);
+            var undoStack = HttpContext.Session.Get<Stack<MakeMove>>(UNDO_STACK_KEY) ?? new Stack<MakeMove>();
             var redoStack = HttpContext.Session.Get<Stack<MakeMove>>(REDO_STACK_KEY) ?? new Stack<MakeMove>();
             var movesCount = HttpContext.Session.GetInt32(MOVE_COUNT_KEY) ?? 0;
             var movesToUndo = new List<MakeMove>();
@@ -130,8 +127,8 @@ namespace TicTacToe.Controllers
         public IActionResult RedoMoves()
         {
             var board = HttpContext.Session.Get<char[,]>(BOARD_KEY);
-            var undoStack = HttpContext.Session.Get<Stack<MakeMove>>(UNDO_STACK_KEY);
-            var redoStack = HttpContext.Session.Get<Stack<MakeMove>>(REDO_STACK_KEY);
+            var undoStack = HttpContext.Session.Get<Stack<MakeMove>>(UNDO_STACK_KEY) ?? new Stack<MakeMove>();
+            var redoStack = HttpContext.Session.Get<Stack<MakeMove>>(REDO_STACK_KEY) ?? new Stack<MakeMove>();
             var movesCount = HttpContext.Session.GetInt32(MOVE_COUNT_KEY) ?? 0;
             var movesToRedo = new List<MakeMove>();
 
